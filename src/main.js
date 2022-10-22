@@ -3,8 +3,8 @@ import IMask from "imask";
 
 const ccBGColor01 = document.querySelector(".cc-bg svg > g g:nth-child(1) path");
 const ccBGColor02 = document.querySelector(".cc-bg svg > g g:nth-child(2) path");
+const ccIcon = document.querySelector(".cc-logo span:nth-child(1) img")
 const ccLogo = document.querySelector(".cc-logo span:nth-child(2) img");
-
 
 function setCardType(type){
 
@@ -19,6 +19,12 @@ function setCardType(type){
     maestro: ["#3A9BD9", "#CC2131"],
     default: ["black", "gray"],
   };
+
+  if (type == "nubank")
+    ccIcon.setAttribute("src", `cc-icon-${type}.svg`);
+  else
+    ccIcon.setAttribute("src", `cc-icon.svg`);
+
   ccBGColor01.setAttribute("fill", colors[type][0]);
   ccBGColor02.setAttribute("fill", colors[type][1]);
   ccLogo.setAttribute("src", `cc-${type}.svg`);
@@ -56,6 +62,12 @@ const cardNumberPattner = {
     {
       mask: "0000 000000 00000",
       regex:
+        /^((5067((0(7|8))|(1(5|9))))|(509((0((5[4-9])|(6[0-3])|84))|106)))\d{0,12}$/,
+      cardtype: "alelo",
+    },
+    {
+      mask: "0000 000000 00000",
+      regex:
         /^((((636368)|(438935)|(504175)|(451416)|(636297))\d{0,10})|((5067)|(4576)|(4011))\d{0,12})$/,
       cardtype: "elo",
     },
@@ -76,7 +88,7 @@ const cardNumberPattner = {
     },
     {
       mask: "0000 0000 0000 0000",
-      regex: /^(516220|516230|516292|523421|537678|550209|554865)\d{0,10}/,
+      regex: /^(5((162(((2|3)0)|92))|23421|37678|50209|54865))\d{0,10}/,
       cardtype: "nubank",
     },
     {
@@ -106,21 +118,38 @@ const cardNumberPattner = {
 
 const cardNumberMasked = IMask(cardNumber, cardNumberPattner);
 
+const cardHolder = document.querySelector("#card-holder")
+const cardHolderPattner = {
+  mask: /^[^\s\d][a-z\s]{0,30}$/,
+}
+
+const cardHolderMasked = IMask(cardHolder, cardHolderPattner)
+
 const addButton = document.querySelector("#add-card");
 addButton.addEventListener("click", () => {
-  alert("Cartão adicionado!");
+  if (
+    (cardHolderMasked.value == "") |
+    (cardNumberMasked.value == "") |
+    (securityCodeMasked.value == "") |
+    (expirationDateMasked.value == "")
+  )
+    alert("Ops! Complete todos os campos para poder adicionar o cartão!")
+  else alert("Cartão adicionado!")
 });
 
 document.querySelector("form").addEventListener("submit", (event) => {
   event.preventDefault();
 });
 
-const cardHolder = document.querySelector("#card-holder");
-cardHolder.addEventListener("input", () => {
+cardHolderMasked.on("accept", () => {
+  updateCardHolde(cardHolderMasked.value);
+});
+
+function updateCardHolde(name){
   const ccHolder = document.querySelector(".cc-holder .value");
   ccHolder.innerText =
-    cardHolder.value.length === 0 ? "FULANO DA SILVA" : cardHolder.value;
-});
+    name.length === 0 ? "FULANO DA SILVA" : name;
+};
 
 securityCodeMasked.on("accept", () => {
   updateSecurityCode(securityCodeMasked.value)
